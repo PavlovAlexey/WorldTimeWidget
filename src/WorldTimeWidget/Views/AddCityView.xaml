@@ -1,0 +1,76 @@
+<UserControl x:Class="WorldTimeWidget.Views.AddCityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             Width="288" d:DesignHeight="360">
+    <Border Background="{StaticResource SurfaceStrongBrush}"
+            CornerRadius="8"
+            BorderThickness="1,1,1,0"
+            BorderBrush="{StaticResource TopHighlightBrush}">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+        </Border.Effect>
+
+        <DockPanel Margin="10">
+
+            <!-- Поле поиска -->
+            <Grid DockPanel.Dock="Top">
+                <TextBox x:Name="SearchBox" Style="{StaticResource SearchTextBoxStyle}"
+                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Text="Поиск города или часового пояса..."
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontFamily="{StaticResource AppFontFamily}" FontSize="13"
+                           Margin="12,0,0,0" VerticalAlignment="Center"
+                           IsHitTestVisible="False"
+                           Visibility="{Binding SearchQuery, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
+            </Grid>
+
+            <!-- Список результатов -->
+            <ScrollViewer DockPanel.Dock="Top" Margin="0,8,0,0" MaxHeight="280"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SearchResults}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource SearchResultRowStyle}"
+                                    CornerRadius="6"
+                                    Opacity="{Binding IsAlreadyAdded, Converter={StaticResource BoolToOpacityConverter}}"
+                                    MouseLeftButtonUp="SearchResultRow_MouseLeftButtonUp">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding CityName}" FontFamily="{StaticResource AppFontFamily}"
+                                                   FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding CountryName}" FontFamily="{StaticResource AppFontFamily}"
+                                                   FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                               FontFamily="{StaticResource AppFontFamily}" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding UtcOffsetText}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAlreadyAdded}" Value="True">
+                                                        <Setter Property="Text" Value="Уже добавлен"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+        </DockPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,82 @@
+<UserControl x:Class="WorldTimeWidget.Views.MenuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             Width="230" d:DesignHeight="300">
+    <Border Background="{StaticResource SurfaceStrongBrush}"
+            CornerRadius="8"
+            BorderThickness="1,1,1,0"
+            BorderBrush="{StaticResource TopHighlightBrush}"
+            Padding="6">
+        <Border.Effect>
+            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+        </Border.Effect>
+
+        <StackPanel>
+
+            <!-- 1. Добавить город -->
+            <Button Style="{StaticResource MenuItemButtonStyle}" Command="{Binding OpenAddCityCommand}">
+                <TextBlock Text="Добавить город" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+            </Button>
+
+            <!-- 2. Изменить список / Готово -->
+            <Button Style="{StaticResource MenuItemButtonStyle}" Command="{Binding ToggleEditModeCommand}">
+                <TextBlock Text="{Binding EditModeMenuLabel}" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+            </Button>
+
+            <!-- 3. Формат времени: 24ч/12ч -->
+            <Button Style="{StaticResource MenuItemButtonStyle}" Command="{Binding ToggleFormatCommand}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Формат времени" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                    <TextBlock Grid.Column="1" Text="{Binding FormatLabel}" Foreground="{StaticResource TextSecondaryBrush}"
+                               FontFamily="{StaticResource AppFontFamily}" FontSize="13" Margin="8,0,4,0"/>
+                    <TextBlock Grid.Column="2" Text="&#x203A;" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                </Grid>
+            </Button>
+
+            <!-- Разделитель -->
+            <Border Height="1" Background="{StaticResource DividerBrush}" Margin="8,6"/>
+
+            <!-- 5. Всегда поверх окон -->
+            <Grid Margin="12,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Всегда поверх окон" VerticalAlignment="Center"
+                           FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
+                              IsChecked="{Binding IsAlwaysOnTop, Mode=TwoWay}"/>
+            </Grid>
+
+            <!-- 6. Запуск при входе в Windows -->
+            <Grid Margin="12,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Запуск при входе в Windows" VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                              IsChecked="{Binding IsAutostartEnabled, Mode=TwoWay}"/>
+            </Grid>
+
+            <!-- Разделитель -->
+            <Border Height="1" Background="{StaticResource DividerBrush}" Margin="8,6"/>
+
+            <!-- 8. Выход -->
+            <Button Style="{StaticResource DangerMenuItemButtonStyle}" Command="{Binding ExitCommand}">
+                <TextBlock Text="Выход" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+            </Button>
+
+        </StackPanel>
+    </Border>
+</UserControl>

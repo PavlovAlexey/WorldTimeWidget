@@ -1,0 +1,199 @@
+<Window x:Class="WorldTimeWidget.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:WorldTimeWidget.Views"
+        Title="WorldTimeWidget"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="288"
+        Topmost="{Binding IsAlwaysOnTop}"
+        UseLayoutRounding="True">
+
+    <Grid>
+        <Border x:Name="RootBorder"
+                CornerRadius="8"
+                Background="{StaticResource SurfaceBrush}"
+                BorderThickness="1,1,1,0"
+                BorderBrush="{StaticResource TopHighlightBrush}"
+                MouseLeftButtonDown="RootBorder_MouseLeftButtonDown"
+                MouseEnter="RootBorder_MouseEnter"
+                MouseLeave="RootBorder_MouseLeave">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+            </Border.Effect>
+
+            <Grid>
+
+                <!-- Список городов + ghost-кнопка добавления (борд 01/04) -->
+                <StackPanel x:Name="ContentClipPanel" SizeChanged="ContentClipPanel_SizeChanged">
+                    <ItemsControl ItemsSource="{Binding Rows}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="12,10" AllowDrop="True" Drop="RowBorder_Drop">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHome}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Индикатор день/ночь ИЛИ хваталка для reorder (борд 01 / 04).
+                                             Оба лежат в одной ячейке Grid — переключаются через Opacity/
+                                             IsHitTestVisible, а не Visibility (см. заметку в отчёте
+                                             разработчика про рендер шаблонизированных элементов). -->
+                                        <Grid Grid.Column="0" VerticalAlignment="Center">
+                                            <Ellipse x:Name="DayNightDot" Width="8" Height="8">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="{StaticResource DayDotBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsNight}" Value="True">
+                                                                <Setter Property="Fill" Value="{StaticResource NightDotBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <TextBlock x:Name="DragHandle" Text="&#x283F;" FontSize="13"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Cursor="SizeAll" Opacity="0" IsHitTestVisible="False"
+                                                       MouseLeftButtonDown="DragHandle_MouseLeftButtonDown"/>
+                                        </Grid>
+
+                                        <!-- Город + дата -->
+                                        <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CityName}"
+                                                       FontFamily="{StaticResource AppFontFamily}"
+                                                       FontSize="14" FontWeight="Medium"
+                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding DateText}"
+                                                       FontFamily="{StaticResource AppFontFamily}"
+                                                       FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Время+UTC ИЛИ кнопка удаления — общая ячейка Grid (не StackPanel),
+                                             чтобы оба варианта занимали одинаковое место и Opacity-переключение
+                                             не влияло на высоту строки. -->
+                                        <Grid Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                            <StackPanel x:Name="TimeBlock">
+                                                <TextBlock Text="{Binding TimeText}"
+                                                           FontFamily="{StaticResource AppFontFamily}"
+                                                           FontSize="21" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding UtcOffsetText}"
+                                                           FontFamily="{StaticResource AppFontFamily}"
+                                                           FontSize="11" HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <Button x:Name="DeleteButton" Style="{StaticResource DeleteButtonStyle}"
+                                                    Content="&#xD7;" Opacity="0" IsHitTestVisible="False"
+                                                    Command="{Binding DataContext.RemoveCityCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True">
+                                        <Setter TargetName="DayNightDot" Property="Opacity" Value="0"/>
+                                        <Setter TargetName="TimeBlock" Property="Opacity" Value="0"/>
+                                        <Setter TargetName="TimeBlock" Property="IsHitTestVisible" Value="False"/>
+                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataContext.IsEditMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True"/>
+                                            <Condition Binding="{Binding IsHome}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="DragHandle" Property="Opacity" Value="1"/>
+                                        <Setter TargetName="DragHandle" Property="IsHitTestVisible" Value="True"/>
+                                        <Setter TargetName="DeleteButton" Property="Opacity" Value="1"/>
+                                        <Setter TargetName="DeleteButton" Property="IsHitTestVisible" Value="True"/>
+                                    </MultiDataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Ghost-кнопка "+ Добавить город" (борд 04). Всегда Visibility="Visible" —
+                         скрывается через Height/Opacity/IsHitTestVisible (см. заметку в отчёте
+                         разработчика про рендер шаблонизированных Button при переключении Visibility). -->
+                    <Button Command="{Binding OpenAddCityCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource GhostAddButtonDashedStyle}">
+                                <Setter Property="Height" Value="0"/>
+                                <Setter Property="Margin" Value="12,0,12,0"/>
+                                <Setter Property="Opacity" Value="0"/>
+                                <Setter Property="IsHitTestVisible" Value="False"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                        <Setter Property="Height" Value="36"/>
+                                        <Setter Property="Margin" Value="12,4,12,10"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Setter Property="IsHitTestVisible" Value="True"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="+ Добавить город" FontFamily="{StaticResource AppFontFamily}"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Hover-кнопки "+" и "⋯" (борд 02). Показ/скрытие управляется из code-behind
+                     по MouseEnter/MouseLeave карточки через Opacity/IsHitTestVisible
+                     (см. MainWindow.xaml.cs) -->
+                <Button x:Name="AddButton" Style="{StaticResource CardOverlayIconButtonStyle}"
+                        FontSize="15" FontWeight="SemiBold" Opacity="0" IsHitTestVisible="False"
+                        Content="+" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,8,38,0" Command="{Binding OpenAddCityCommand}"/>
+
+                <Button x:Name="MenuButton" Style="{StaticResource CardOverlayIconButtonStyle}"
+                        FontSize="13" Opacity="0" IsHitTestVisible="False"
+                        Content="&#x2022;&#x2022;&#x2022;" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Margin="0,8,8,0" Command="{Binding OpenMenuCommand}"/>
+
+                <!-- Панель добавления города (борд 03) -->
+                <Popup x:Name="AddCityPopupControl"
+                       PlacementTarget="{Binding ElementName=RootBorder}"
+                       Placement="Bottom"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade"
+                       StaysOpen="False"
+                       IsOpen="{Binding IsAddCityOpen, Mode=TwoWay}">
+                    <views:AddCityView DataContext="{Binding}"/>
+                </Popup>
+
+                <!-- Меню "⋯" (борд 05) -->
+                <Popup x:Name="MenuPopupControl"
+                       PlacementTarget="{Binding ElementName=MenuButton}"
+                       Placement="Bottom"
+                       HorizontalOffset="-206"
+                       VerticalOffset="4"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade"
+                       StaysOpen="False"
+                       IsOpen="{Binding IsMenuOpen, Mode=TwoWay}">
+                    <views:MenuView DataContext="{Binding}"/>
+                </Popup>
+
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,17 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Publish / installer output (artifacts belong in GitHub Releases, not git history)
+src/**/publish/
+installer/Output/
+
+# OS cruft
+Thumbs.db
+Desktop.ini

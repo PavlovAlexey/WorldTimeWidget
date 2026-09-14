@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Цветовые токены по design_brief.md («Результат отрисовки»):
+        поверхность #F3F3F3 @78-94% (Mica-заливка), хайлайт-обводка #FFFFFF @60%,
+        accent #0078D4, textPrimary #1B1B1B, textSecondary #6B6B6B,
+        divider #000000 @6%, danger (пункт «Выход») — Fluent critical red.
+    -->
+
+    <!-- Поверхности -->
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#E0F3F3F3"/>
+    <!-- ~88% альфа: базовая заливка карточки -->
+    <SolidColorBrush x:Key="SurfaceStrongBrush" Color="#F0F3F3F3"/>
+    <!-- ~94% альфа: попапы (добавление города, меню) -->
+    <SolidColorBrush x:Key="SurfaceRowHoverBrush" Color="#14000000"/>
+    <!-- лёгкая тёмная подсветка строки при наведении -->
+    <SolidColorBrush x:Key="TopHighlightBrush" Color="#99FFFFFF"/>
+    <!-- обводка-хайлайт сверху карточки, 60% белого -->
+    <SolidColorBrush x:Key="DividerBrush" Color="#0F000000"/>
+    <!-- разделитель между строками, 6% чёрного -->
+
+    <!-- Акцент -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#0078D4"/>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1F0078D4"/>
+    <!-- подложка домашней строки: accent на ~12% альфы -->
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#F0006CBE"/>
+
+    <!-- Текст -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1B1B"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6B6B"/>
+    <SolidColorBrush x:Key="TextOnAccentBrush" Color="#FFFFFF"/>
+
+    <!-- Индикатор день/ночь -->
+    <SolidColorBrush x:Key="DayDotBrush" Color="#FFB900"/>
+    <SolidColorBrush x:Key="NightDotBrush" Color="#5B5FC7"/>
+
+    <!-- Danger (пункт "Выход") -->
+    <SolidColorBrush x:Key="DangerBrush" Color="#C42B1C"/>
+    <SolidColorBrush x:Key="DangerHoverBackgroundBrush" Color="#14C42B1C"/>
+
+    <!-- Прочее -->
+    <SolidColorBrush x:Key="ControlHoverBackgroundBrush" Color="#14000000"/>
+    <SolidColorBrush x:Key="ControlPressedBackgroundBrush" Color="#22000000"/>
+    <SolidColorBrush x:Key="FieldBackgroundBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="FieldBorderBrush" Color="#22000000"/>
+
+</ResourceDictionary>

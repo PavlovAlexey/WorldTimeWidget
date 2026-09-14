@@ -1,0 +1,123 @@
+# WorldTimeWidget
+
+Компактный floating-виджет мировых часов для Windows в стиле Windows 11 Fluent.
+Список часовых поясов с добавлением/удалением/перестановкой городов, домашний
+(системный) пояс первой строкой, режим "поверх всех окон", 24ч/12ч формат
+времени, автозапуск при входе в Windows. Подробности поведения — в
+[`spec.md`](spec.md), дизайн — в [`design_brief.md`](design_brief.md).
+
+Технологии: .NET 8, WPF (`net8.0-windows`), только Windows.
+
+## Структура репозитория
+
+```
+WorldTimeWidget.sln
+src/WorldTimeWidget/       — исходный код приложения (WPF)
+installer/WorldTimeWidget.iss — скрипт инсталлятора Inno Setup
+```
+
+## Требования для сборки
+
+- **.NET 8 SDK** (не только Runtime) — https://dotnet.microsoft.com/download/dotnet/8.0
+  Проверить установку: `dotnet --version` (должно быть 8.x).
+- Для сборки инсталлятора — **Inno Setup 6** — https://jrsoftware.org/isdl.php
+  (можно поставить через `winget install JRSoftware.InnoSetup`).
+- Только Windows 10/11 x64 — приложение использует WinAPI-специфику
+  (реестр автозапуска, DWM/прозрачные окна).
+
+## Сборка (Debug, для разработки)
+
+```powershell
+dotnet build WorldTimeWidget.sln -c Debug
+```
+
+Запуск без публикации (требует установленный .NET SDK на машине разработчика):
+
+```powershell
+dotnet run --project src/WorldTimeWidget/WorldTimeWidget.csproj
+```
+
+## Публикация self-contained single-file exe
+
+Это тот вариант, который нужно распространять на машины **без** установленного
+.NET — весь рантайм упаковывается внутрь одного exe.
+
+```powershell
+cd src/WorldTimeWidget
+dotnet publish -c Release -r win-x64 --self-contained true `
+    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+```
+
+Результат появится в:
+
+```
+src/WorldTimeWidget/bin/Release/net8.0-windows/win-x64/publish/WorldTimeWidget.exe
+```
+
+Это один exe-файл (~150 МБ, т.к. содержит весь рантайм .NET) — его можно
+скопировать на любой Windows x64 ПК и запустить напрямую, без установки
+.NET SDK/Runtime на целевой машине.
+
+## Сборка инсталлятора (Inno Setup)
+
+1. Сначала выполните публикацию (шаг выше) — инсталлятор пакует уже
+   опубликованный exe из `publish/`.
+2. Скомпилируйте скрипт инсталлятора:
+
+   ```powershell
+   & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\WorldTimeWidget.iss
+   ```
+
+   (путь к `ISCC.exe` может отличаться в зависимости от того, куда Inno Setup
+   был установлен — например, `%LocalAppData%\Programs\Inno Setup 6\ISCC.exe`
+   при установке без прав администратора).
+
+3. Готовый инсталлятор появится в `installer/Output/WorldTimeWidget-Setup.exe`.
+
+## Установка на другом ПК
+
+Файл `WorldTimeWidget-Setup.exe` — самодостаточный инсталлятор:
+
+1. Скопируйте `WorldTimeWidget-Setup.exe` на целевой ПК и запустите его.
+   **.NET на целевой машине устанавливать не нужно** — рантайм уже упакован
+   внутрь.
+2. Установка идёт **без запроса прав администратора** — приложение ставится
+   в `%LocalAppData%\Programs\WorldTimeWidget` (в профиль текущего
+   пользователя).
+3. По окончании установки создаётся ярлык в меню "Пуск" (и, по желанию,
+   на рабочем столе — соответствующий чекбокс есть в мастере установки).
+4. Виджет запускается сразу после установки (можно снять галочку в последнем
+   шаге мастера, если запуск не нужен).
+5. Деинсталляция — через "Параметры → Приложения" или
+   `unins000.exe` в папке установки. Деинсталлятор удаляет:
+   - установленный exe и ярлыки;
+   - ключ автозапуска `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`,
+     если пользователь включал автозапуск через меню приложения;
+   - файл настроек `%AppData%\WorldTimeWidget\settings.json`.
+
+Единственный способ закрыть запущенный виджет — пункт меню **"Выход"**
+(правый клик по иконке "⋯" в правом верхнем углу карточки при наведении
+курсора) — у окна нет рамки/крестика и нет иконки в трее/панели задач.
+
+## Автозапуск и настройки
+
+- Автозапуск при входе в Windows включается/выключается тумблером в меню
+  приложения ("Запуск при входе в Windows") — управляет значением
+  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\WorldTimeWidget`,
+  права администратора не требуются.
+- Настройки (список городов, формат времени, "поверх всех окон", автозапуск,
+  позиция окна) сохраняются в `%AppData%\WorldTimeWidget\settings.json`.
+
+## Известные компромиссы
+
+- **Шрифт**: дизайн (Penpot) отрисован в Inter, т.к. самохостинг Penpot не
+  содержит Segoe UI. В реализации используется системный
+  **Segoe UI Variable** с фолбэком на **Segoe UI** (`FontFamily="Segoe UI
+  Variable Text, Segoe UI"`) — при отсутствии Segoe UI Variable (например,
+  на Windows 10 без соответствующего шрифтового пакета) автоматически
+  используется Segoe UI, визуальная разница минимальна.
+- **Mica/acrylic**: настоящий Mica-материал (блюр рабочего стола под окном
+  через DWM/Composition API) не реализован — согласно spec.md это
+  необязательное улучшение. Используется fallback — полупрозрачная заливка
+  (`#F3F3F3` на ~88% альфы) без блюра фона. Визуально карточка всё равно
+  полупрозрачна и показывает содержимое под собой, но без размытия.
