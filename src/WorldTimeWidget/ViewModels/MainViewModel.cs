@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WorldTimeWidget.Models;
 using WorldTimeWidget.Services;
@@ -12,6 +13,12 @@ namespace WorldTimeWidget.ViewModels;
 /// </summary>
 public sealed class MainViewModel : ViewModelBase
 {
+    /// <summary>Базовый цвет фона карточки (без альфы) — тот же, что зашит в <c>SurfaceBrush</c>.</summary>
+    private static readonly Color SurfaceBaseColor = Color.FromRgb(0xF3, 0xF3, 0xF3);
+
+    public const int MinBackgroundOpacityPercent = 40;
+    public const int MaxBackgroundOpacityPercent = 100;
+
     private readonly SettingsService _settingsService;
     private readonly AutostartService _autostartService;
     private readonly AppSettings _settings;
@@ -23,6 +30,7 @@ public sealed class MainViewModel : ViewModelBase
     private bool _is24HourFormat;
     private bool _isAlwaysOnTop;
     private bool _isAutostartEnabled;
+    private int _backgroundOpacityPercent;
     private string _searchQuery = string.Empty;
 
     public MainViewModel(SettingsService settingsService, AutostartService autostartService)
@@ -36,6 +44,9 @@ public sealed class MainViewModel : ViewModelBase
         // Источник истины для автозапуска — реестр (мог быть изменён вручную),
         // но при расхождении с сохранённым намерением приводим реестр в соответствие настройкам.
         _isAutostartEnabled = _settings.IsAutostartEnabled;
+        _backgroundOpacityPercent = Math.Clamp(
+            _settings.BackgroundOpacityPercent, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
+        CardBackgroundBrush = new SolidColorBrush(ComputeSurfaceColor(_backgroundOpacityPercent));
 
         Rows = new ObservableCollection<TimeZoneRowViewModel>();
         SearchResults = new ObservableCollection<AddCityItemViewModel>();
@@ -202,6 +213,31 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Фон карточки (<c>RootBorder.Background</c>), альфа-канал которого регулируется слайдером
+    /// «Прозрачность». Кисть создаётся один раз и мутируется на месте (<see cref="SolidColorBrush.Color"/>)
+    /// при изменении настройки — WPF перерисовывает всё, что на неё ссылается, без пересоздания
+    /// binding'а. Попапы (добавление города, меню) используют отдельный фиксированный
+    /// <c>SurfaceStrongBrush</c> и этой кистью не затрагиваются.
+    /// </summary>
+    public SolidColorBrush CardBackgroundBrush { get; }
+
+    /// <summary>Прозрачность фона карточки, % (40-100). См. <see cref="CardBackgroundBrush"/>.</summary>
+    public int BackgroundOpacityPercent
+    {
+        get => _backgroundOpacityPercent;
+        set
+        {
+            var clamped = Math.Clamp(value, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
+            if (SetField(ref _backgroundOpacityPercent, clamped))
+            {
+                CardBackgroundBrush.Color = ComputeSurfaceColor(clamped);
+                _settings.BackgroundOpacityPercent = clamped;
+                Save();
+            }
+        }
+    }
+
     public RelayCommand ToggleEditModeCommand { get; }
     public RelayCommand OpenAddCityCommand { get; }
     public RelayCommand CloseAddCityCommand { get; }
@@ -359,6 +395,13 @@ public sealed class MainViewModel : ViewModelBase
     private void Save()
     {
         _settingsService.Save(_settings);
+    }
+
+    /// <summary>Пересчитывает процент прозрачности (0-100) в цвет фона карточки с альфа-каналом.</summary>
+    private static Color ComputeSurfaceColor(int percent)
+    {
+        var alpha = (byte)Math.Clamp((int)Math.Round(percent / 100.0 * 255.0), 0, 255);
+        return Color.FromArgb(alpha, SurfaceBaseColor.R, SurfaceBaseColor.G, SurfaceBaseColor.B);
     }
 
     private static string GetHomeCityName()

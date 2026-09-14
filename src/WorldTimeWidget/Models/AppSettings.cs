@@ -27,4 +27,12 @@ public sealed class AppSettings
 
     /// <summary>Последняя позиция окна на экране (Y). null — использовать позицию по умолчанию.</summary>
     public double? WindowTop { get; set; }
+
+    /// <summary>
+    /// Прозрачность фона основной карточки, % (диапазон 40-100). Управляет только альфа-каналом
+    /// фона карточки (<c>RootBorder.Background</c>) — попапы и текст не затрагиваются.
+    /// Дефолт 88 соответствует ранее зашитому значению <c>#E0F3F3F3</c> (альфа 0xE0 ≈ 88%),
+    /// чтобы для существующих пользователей без settings.json внешний вид не изменился.
+    /// </summary>
+    public int BackgroundOpacityPercent { get; set; } = 88;
 }

@@ -41,6 +41,22 @@
                 </Grid>
             </Button>
 
+            <!-- Прозрачность фона карточки (доработка v1.1) -->
+            <StackPanel Margin="12,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Прозрачность" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                    <TextBlock Grid.Column="1" Text="{Binding BackgroundOpacityPercent, StringFormat={}{0}%}"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                </Grid>
+                <Slider Style="{StaticResource OpacitySliderStyle}" Margin="0,8,0,0"
+                        Value="{Binding BackgroundOpacityPercent, Mode=TwoWay}"/>
+            </StackPanel>
+
             <!-- Разделитель -->
             <Border Height="1" Background="{StaticResource DividerBrush}" Margin="8,6"/>
 

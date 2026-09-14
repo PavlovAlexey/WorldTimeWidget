@@ -148,6 +148,75 @@
         </Setter>
     </Style>
 
+    <!-- ===================== Слайдер "Прозрачность" (меню "⋯", доработка v1.1) =====================
+         Тонкий трек (4px), заливка трека акцентным цветом слева от ползунка, круглый thumb —
+         по аналогии с ToggleSwitchStyle выше. -->
+    <Style x:Key="OpacitySliderFillRepeatButtonStyle" TargetType="RepeatButton">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Height="4" CornerRadius="2" Background="{StaticResource AccentBrush}"
+                            VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="OpacitySliderTrackRepeatButtonStyle" TargetType="RepeatButton"
+           BasedOn="{StaticResource OpacitySliderFillRepeatButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Height="4" Background="Transparent" VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="OpacitySliderStyle" TargetType="Slider">
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Minimum" Value="40"/>
+        <Setter Property="Maximum" Value="100"/>
+        <Setter Property="SmallChange" Value="1"/>
+        <Setter Property="LargeChange" Value="5"/>
+        <Setter Property="IsMoveToPointEnabled" Value="True"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Height="{TemplateBinding Height}">
+                        <Border Height="4" CornerRadius="2" VerticalAlignment="Center"
+                                Background="{StaticResource ControlHoverBackgroundBrush}"/>
+                        <Track x:Name="PART_Track" VerticalAlignment="Center">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource OpacitySliderFillRepeatButtonStyle}"
+                                              Command="Slider.DecreaseLarge"/>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource OpacitySliderTrackRepeatButtonStyle}"
+                                              Command="Slider.IncreaseLarge"/>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Width="14" Height="14" Focusable="False">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Ellipse Fill="{StaticResource AccentBrush}"
+                                                     Stroke="{StaticResource TextOnAccentBrush}"
+                                                     StrokeThickness="1.5"/>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ===================== Ghost-кнопка "+ Добавить город" (борд 04) ===================== -->
     <Style x:Key="GhostAddButtonStyle" TargetType="Button">
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>

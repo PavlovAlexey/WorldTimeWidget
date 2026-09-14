@@ -16,7 +16,7 @@
     <Grid>
         <Border x:Name="RootBorder"
                 CornerRadius="8"
-                Background="{StaticResource SurfaceBrush}"
+                Background="{Binding CardBackgroundBrush}"
                 BorderThickness="1,1,1,0"
                 BorderBrush="{StaticResource TopHighlightBrush}"
                 MouseLeftButtonDown="RootBorder_MouseLeftButtonDown"
@@ -30,7 +30,11 @@
 
                 <!-- Список городов + ghost-кнопка добавления (борд 01/04) -->
                 <StackPanel x:Name="ContentClipPanel" SizeChanged="ContentClipPanel_SizeChanged">
-                    <ItemsControl ItemsSource="{Binding Rows}" Margin="0,4,0,0">
+                    <!-- Верхний отступ 32px зарезервирован под hover-кнопки "+"/"⋯" (борд 02) —
+                         кнопки (24px, margin-top 8px) должны всегда лежать в чистой зоне НАД текстом
+                         домашней строки. Отступ присутствует постоянно (не только на hover), чтобы
+                         строка не "прыгала" при наведении курсора. -->
+                    <ItemsControl ItemsSource="{Binding Rows}" Margin="0,32,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="12,10" AllowDrop="True" Drop="RowBorder_Drop">
