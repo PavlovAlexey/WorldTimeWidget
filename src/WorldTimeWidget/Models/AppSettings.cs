@@ -35,4 +35,12 @@ public sealed class AppSettings
     /// чтобы для существующих пользователей без settings.json внешний вид не изменился.
     /// </summary>
     public int BackgroundOpacityPercent { get; set; } = 88;
+
+    /// <summary>
+    /// Прозрачность для кликов (WS_EX_TRANSPARENT на hwnd главного окна) — клики проваливаются
+    /// сквозь виджет к тому, что под ним. По умолчанию выключено. Единственный штатный способ
+    /// выключить обратно, если включено — трей (см. TrayIconService), так как при включённом
+    /// click-through сам виджет не реагирует на мышь вообще.
+    /// </summary>
+    public bool IsClickThrough { get; set; }
 }

@@ -5,6 +5,8 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <!-- Нужен для NotifyIcon (System.Windows.Forms) — трей-иконка, доработка v1.2, см. spec.md. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>WorldTimeWidget</RootNamespace>
     <AssemblyName>WorldTimeWidget</AssemblyName>
@@ -20,9 +22,29 @@
 
     <Product>WorldTimeWidget</Product>
     <AssemblyTitle>WorldTimeWidget</AssemblyTitle>
-    <Version>1.1.0</Version>
-    <FileVersion>1.1.0.0</FileVersion>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Version>1.2.0</Version>
+    <FileVersion>1.2.0.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+
+    <!--
+      WFAC010: анализатор Windows Forms советует настраивать DPI через Application.SetHighDpiMode/
+      ApplicationHighDpiMode вместо app.manifest — это верно для чистых WinForms-приложений, но
+      здесь UseWindowsForms включён только ради NotifyIcon (трей-иконка, доработка v1.2), а DPI-
+      осведомлённость (PerMonitorV2) реально управляется WPF через app.manifest — это нужно
+      сохранить, поэтому предупреждение неприменимо и подавляется точечно.
+    -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
+
+  <!--
+    UseWindowsForms добавляет неявные global using на System.Windows.Forms/System.Drawing,
+    которые конфликтуют с одноимёнными типами WPF (Application, UserControl, MouseEventArgs,
+    DragEventArgs, Color и т.д.) по всему проекту. Убираем эти неявные using — там, где реально
+    нужны типы WinForms/Drawing (TrayIconService), они подключены явным using в самом файле.
+  -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
 
 </Project>

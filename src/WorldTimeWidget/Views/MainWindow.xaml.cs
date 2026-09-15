@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using WorldTimeWidget.Services;
 using WorldTimeWidget.ViewModels;
@@ -9,8 +10,12 @@ namespace WorldTimeWidget.Views;
 
 public partial class MainWindow : Window
 {
-    private MainViewModel ViewModel => (MainViewModel)DataContext;
+    /// <summary>Открыт для <c>App.xaml.cs</c> — трей-иконка живёт на уровне приложения
+    /// (см. TrayIconService) и работает с той же view-model, что и главное окно.</summary>
+    public MainViewModel ViewModel => (MainViewModel)DataContext;
+
     private bool _isHoveringCard;
+    private IntPtr _hwnd = IntPtr.Zero;
 
     public MainWindow()
     {
@@ -25,6 +30,17 @@ public partial class MainWindow : Window
         Deactivated += MainWindow_Deactivated;
     }
 
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+
+        // hwnd появляется только здесь — применяем восстановленную из settings.json настройку
+        // click-through сразу, до показа окна пользователю (окно всегда стартует видимым,
+        // но может стартовать уже "прозрачным для кликов", если было включено в прошлый раз).
+        _hwnd = new WindowInteropHelper(this).Handle;
+        ApplyClickThrough(ViewModel.IsClickThrough);
+    }
+
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         // "+" скрыта в режиме редактирования — если пользователь переключил режим,
@@ -33,6 +49,21 @@ public partial class MainWindow : Window
         {
             UpdateHoverButtonsVisibility();
         }
+        else if (e.PropertyName == nameof(MainViewModel.IsClickThrough))
+        {
+            ApplyClickThrough(ViewModel.IsClickThrough);
+        }
+    }
+
+    /// <summary>
+    /// Применяет/снимает WS_EX_TRANSPARENT на hwnd главного окна (см. ClickThroughService).
+    /// Единственный штатный способ выключить обратно, если уже включено — трей (см.
+    /// TrayIconService), так как при включённом click-through окно не получает кликов мыши
+    /// вообще, включая по собственным кнопкам/меню.
+    /// </summary>
+    private void ApplyClickThrough(bool enabled)
+    {
+        ClickThroughService.SetClickThrough(_hwnd, enabled);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)

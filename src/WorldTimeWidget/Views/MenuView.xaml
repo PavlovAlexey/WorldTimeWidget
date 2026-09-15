@@ -72,6 +72,21 @@
                               IsChecked="{Binding IsAlwaysOnTop, Mode=TwoWay}"/>
             </Grid>
 
+            <!-- Прозрачный для кликов (доработка v1.2). Включить можно и отсюда, но выключить
+                 обратно, если уже включено, можно только через трей — сам виджет перестаёт
+                 реагировать на мышь, пока это включено (см. spec.md, README). -->
+            <Grid Margin="12,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Прозрачный для кликов" VerticalAlignment="Center"
+                           TextWrapping="Wrap"
+                           FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                              IsChecked="{Binding IsClickThrough, Mode=TwoWay}"/>
+            </Grid>
+
             <!-- 6. Запуск при входе в Windows -->
             <Grid Margin="12,8">
                 <Grid.ColumnDefinitions>

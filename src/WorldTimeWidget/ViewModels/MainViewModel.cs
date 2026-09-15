@@ -30,6 +30,7 @@ public sealed class MainViewModel : ViewModelBase
     private bool _is24HourFormat;
     private bool _isAlwaysOnTop;
     private bool _isAutostartEnabled;
+    private bool _isClickThrough;
     private int _backgroundOpacityPercent;
     private string _searchQuery = string.Empty;
 
@@ -44,6 +45,7 @@ public sealed class MainViewModel : ViewModelBase
         // Источник истины для автозапуска — реестр (мог быть изменён вручную),
         // но при расхождении с сохранённым намерением приводим реестр в соответствие настройкам.
         _isAutostartEnabled = _settings.IsAutostartEnabled;
+        _isClickThrough = _settings.IsClickThrough;
         _backgroundOpacityPercent = Math.Clamp(
             _settings.BackgroundOpacityPercent, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
         CardBackgroundBrush = new SolidColorBrush(ComputeSurfaceColor(_backgroundOpacityPercent));
@@ -208,6 +210,25 @@ public sealed class MainViewModel : ViewModelBase
                 }
 
                 _settings.IsAutostartEnabled = value;
+                Save();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Прозрачность для кликов (WS_EX_TRANSPARENT на hwnd главного окна, см. <c>ClickThroughService</c>
+    /// и <c>MainWindow.xaml.cs</c>, который реагирует на изменение этого свойства). Пока включено,
+    /// сам виджет не реагирует на мышь вообще — выключить обратно можно только через трей
+    /// (<c>TrayIconService</c>) либо (если ещё не включено) этим же тумблером в меню.
+    /// </summary>
+    public bool IsClickThrough
+    {
+        get => _isClickThrough;
+        set
+        {
+            if (SetField(ref _isClickThrough, value))
+            {
+                _settings.IsClickThrough = value;
                 Save();
             }
         }
