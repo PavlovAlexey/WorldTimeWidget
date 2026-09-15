@@ -12,6 +12,7 @@
 
             <conv:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
             <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>
+            <conv:BoolToEnabledOpacityConverter x:Key="BoolToEnabledOpacityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

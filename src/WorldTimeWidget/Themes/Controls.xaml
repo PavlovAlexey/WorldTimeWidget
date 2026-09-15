@@ -14,7 +14,7 @@
         <Setter Property="Height" Value="24"/>
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{Binding Theme.TextPrimaryBrush}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="Template">
@@ -45,7 +45,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <Ellipse x:Name="Bg" Fill="{StaticResource SurfaceStrongBrush}"/>
+                        <Ellipse x:Name="Bg" Fill="{Binding Theme.PopupBrush}"/>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -63,7 +63,7 @@
 
     <!-- ===================== Маленькая кнопка удаления "×" (борд 04) ===================== -->
     <Style x:Key="DeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundIconButtonStyle}">
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="Foreground" Value="{Binding Theme.TextSecondaryBrush}"/>
         <Setter Property="FontSize" Value="14"/>
     </Style>
 
@@ -71,7 +71,7 @@
     <Style x:Key="MenuItemButtonStyle" TargetType="Button">
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{Binding Theme.TextPrimaryBrush}"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Focusable" Value="False"/>
@@ -128,9 +128,9 @@
                 <ControlTemplate TargetType="ToggleButton">
                     <Border x:Name="Track" CornerRadius="10" BorderThickness="1.5"
                             Background="Transparent"
-                            BorderBrush="{StaticResource TextSecondaryBrush}">
+                            BorderBrush="{Binding Theme.TextSecondaryBrush}">
                         <Grid>
-                            <Ellipse x:Name="Thumb" Width="12" Height="12" Fill="{StaticResource TextSecondaryBrush}"
+                            <Ellipse x:Name="Thumb" Width="12" Height="12" Fill="{Binding Theme.TextSecondaryBrush}"
                                      HorizontalAlignment="Left" Margin="3,0,0,0"/>
                         </Grid>
                     </Border>
@@ -178,7 +178,7 @@
 
     <Style x:Key="OpacitySliderStyle" TargetType="Slider">
         <Setter Property="Height" Value="20"/>
-        <Setter Property="Minimum" Value="40"/>
+        <Setter Property="Minimum" Value="20"/>
         <Setter Property="Maximum" Value="100"/>
         <Setter Property="SmallChange" Value="1"/>
         <Setter Property="LargeChange" Value="5"/>
@@ -221,7 +221,7 @@
     <Style x:Key="GhostAddButtonStyle" TargetType="Button">
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
         <Setter Property="FontSize" Value="12.5"/>
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="Foreground" Value="{Binding Theme.TextSecondaryBrush}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="Height" Value="36"/>
@@ -275,10 +275,10 @@
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="Padding" Value="10,6"/>
         <Setter Property="Background" Value="{StaticResource FieldBackgroundBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{Binding Theme.TextPrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{StaticResource FieldBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="CaretBrush" Value="{Binding Theme.TextPrimaryBrush}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">

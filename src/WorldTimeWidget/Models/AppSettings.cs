@@ -29,12 +29,28 @@ public sealed class AppSettings
     public double? WindowTop { get; set; }
 
     /// <summary>
-    /// Прозрачность фона основной карточки, % (диапазон 40-100). Управляет только альфа-каналом
-    /// фона карточки (<c>RootBorder.Background</c>) — попапы и текст не затрагиваются.
-    /// Дефолт 88 соответствует ранее зашитому значению <c>#E0F3F3F3</c> (альфа 0xE0 ≈ 88%),
-    /// чтобы для существующих пользователей без settings.json внешний вид не изменился.
+    /// УСТАРЕЛО (v1.1-v1.2): единая прозрачность карточки для всех тем, до введения per-theme
+    /// хранения в v1.3 (см. <see cref="BackgroundOpacityByTheme"/>). Оставлено только для
+    /// миграции — при загрузке настроек, сохранённых до v1.3, значение однократно переносится в
+    /// <c>BackgroundOpacityByTheme["windows"]</c> (см. <c>SettingsService.Load</c>), чтобы
+    /// прозрачность у существующих пользователей не "прыгала" на новый дизайн-дефолт темы Windows
+    /// (78%). Новый код это поле больше не читает и не пишет.
     /// </summary>
     public int BackgroundOpacityPercent { get; set; } = 88;
+
+    /// <summary>
+    /// Id активной темы оформления (см. <c>ThemeCatalogService</c>). Дефолт — Windows (Fluent/Mica).
+    /// </summary>
+    public string ThemeId { get; set; } = "windows";
+
+    /// <summary>
+    /// Прозрачность фона основной карточки, % (диапазон 20-100) — отдельно на каждую тему (ключ —
+    /// id темы), а не одним общим числом, как раньше (см. spec.md, «Доработка v1.3»). Управляет
+    /// только альфа-каналом фона карточки — попапы (свои <see cref="ThemeDefinition"/>.PopupOpacityPercent
+    /// у каждой темы) и текст не затрагиваются. При первом переключении на тему, для которой ещё
+    /// нет сохранённого значения, используется её <c>ThemeDefinition.DefaultOpacityPercent</c>.
+    /// </summary>
+    public Dictionary<string, int> BackgroundOpacityByTheme { get; set; } = new();
 
     /// <summary>
     /// Прозрачность для кликов (WS_EX_TRANSPARENT на hwnd главного окна) — клики проваливаются

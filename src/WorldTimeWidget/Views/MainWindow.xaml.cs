@@ -24,6 +24,10 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
+        // Радиус скругления карточки меняется с темой (доработка v1.3) — контент нужно
+        // переклипировать даже без изменения размеров окна (см. UpdateContentClip).
+        viewModel.Theme.PropertyChanged += ThemeViewModel_PropertyChanged;
+
         Loaded += MainWindow_Loaded;
         LocationChanged += MainWindow_LocationChanged;
         Closing += MainWindow_Closing;
@@ -52,6 +56,14 @@ public partial class MainWindow : Window
         else if (e.PropertyName == nameof(MainViewModel.IsClickThrough))
         {
             ApplyClickThrough(ViewModel.IsClickThrough);
+        }
+    }
+
+    private void ThemeViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ViewModels.ThemeViewModel.CardRadius))
+        {
+            UpdateContentClip();
         }
     }
 
@@ -181,11 +193,22 @@ public partial class MainWindow : Window
 
     private void ContentClipPanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        // Border не клипит дочерний контент по скруглённым углам сам по себе —
-        // подсветка домашней строки иначе выступала бы за скруглённые углы карточки.
-        if (sender is FrameworkElement element && element.ActualWidth > 0 && element.ActualHeight > 0)
+        UpdateContentClip();
+    }
+
+    /// <summary>
+    /// Border не клипит дочерний контент по скруглённым углам сам по себе — подсветка домашней
+    /// строки иначе выступала бы за скруглённые углы карточки. Радиус зависит от активной темы
+    /// (доработка v1.3), поэтому переклипируем не только при изменении размера, но и при
+    /// переключении темы (см. ThemeViewModel_PropertyChanged).
+    /// </summary>
+    private void UpdateContentClip()
+    {
+        if (ContentClipPanel.ActualWidth > 0 && ContentClipPanel.ActualHeight > 0)
         {
-            element.Clip = new RectangleGeometry(new Rect(0, 0, element.ActualWidth, element.ActualHeight), 8, 8);
+            var radius = ViewModel.Theme.CardRadius;
+            ContentClipPanel.Clip = new RectangleGeometry(
+                new Rect(0, 0, ContentClipPanel.ActualWidth, ContentClipPanel.ActualHeight), radius, radius);
         }
     }
 }

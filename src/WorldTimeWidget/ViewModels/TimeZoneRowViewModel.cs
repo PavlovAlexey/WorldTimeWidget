@@ -13,11 +13,12 @@ public sealed class TimeZoneRowViewModel : ViewModelBase
     private string _utcOffsetText = string.Empty;
     private bool _isNight;
 
-    public TimeZoneRowViewModel(string timeZoneId, string cityName, bool isHome)
+    public TimeZoneRowViewModel(string timeZoneId, string cityName, bool isHome, ThemeViewModel theme)
     {
         TimeZoneId = timeZoneId;
         CityName = cityName;
         IsHome = isHome;
+        Theme = theme;
 
         try
         {
@@ -45,6 +46,13 @@ public sealed class TimeZoneRowViewModel : ViewModelBase
 
     /// <summary>true — домашний (системный) пояс: первая строка, подсвечена, неудаляема.</summary>
     public bool IsHome { get; }
+
+    /// <summary>
+    /// Общий на всё приложение экземпляр текущей активной темы (см. <see cref="ThemeViewModel"/>) —
+    /// проброшен сюда, чтобы XAML-шаблон строки (см. MainWindow.xaml) мог биндиться на токены темы
+    /// напрямую (<c>{Binding Theme.XXX}</c>), без AncestorType-биндингов до MainViewModel.
+    /// </summary>
+    public ThemeViewModel Theme { get; }
 
     public string TimeText
     {

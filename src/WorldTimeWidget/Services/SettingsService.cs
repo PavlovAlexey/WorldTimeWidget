@@ -32,18 +32,37 @@ public sealed class SettingsService
         {
             if (!File.Exists(_settingsFilePath))
             {
+                // Настоящий первый запуск (нет файла вообще) — тема Windows должна взять свой
+                // дизайн-дефолт прозрачности (78%), а не унаследованный из старого поля дефолт.
                 return new AppSettings();
             }
 
             var json = File.ReadAllText(_settingsFilePath);
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
-            return settings ?? new AppSettings();
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            MigrateLegacyOpacity(settings);
+            return settings;
         }
         catch
         {
             // Повреждённый/недоступный файл настроек не должен ронять запуск приложения —
             // откатываемся на настройки по умолчанию.
             return new AppSettings();
+        }
+    }
+
+    /// <summary>
+    /// До v1.3 прозрачность карточки хранилась одним общим числом (<c>AppSettings.BackgroundOpacityPercent</c>)
+    /// вместо per-theme словаря. Для settings.json, сохранённых до этого обновления, переносим
+    /// значение в запись темы "windows" (см. <c>ThemeCatalogService.DefaultThemeId</c>), чтобы у
+    /// уже установленных пользователей внешний вид не менялся молча на новый дизайн-дефолт темы
+    /// Windows (78%) — только настоящие первые запуски (без settings.json вообще, см. <see cref="Load"/>)
+    /// получают дизайн-дефолт.
+    /// </summary>
+    private static void MigrateLegacyOpacity(AppSettings settings)
+    {
+        if (!settings.BackgroundOpacityByTheme.ContainsKey(ThemeCatalogService.DefaultThemeId))
+        {
+            settings.BackgroundOpacityByTheme[ThemeCatalogService.DefaultThemeId] = settings.BackgroundOpacityPercent;
         }
     }
 

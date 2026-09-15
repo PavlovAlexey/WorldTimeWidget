@@ -12,7 +12,7 @@
 ;   iscc WorldTimeWidget.iss
 
 #define MyAppName "WorldTimeWidget"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "WorldTimeWidget"
 #define MyAppExeName "WorldTimeWidget.exe"
 #define MyPublishDir "..\src\WorldTimeWidget\bin\Release\net8.0-windows\win-x64\publish"

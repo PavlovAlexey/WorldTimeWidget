@@ -2,33 +2,24 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Цветовые токены по design_brief.md («Результат отрисовки»):
-        поверхность #F3F3F3 @78-94% (Mica-заливка), хайлайт-обводка #FFFFFF @60%,
-        accent #0078D4, textPrimary #1B1B1B, textSecondary #6B6B6B,
-        divider #000000 @6%, danger (пункт «Выход») — Fluent critical red.
+        Начиная с v1.3 (система тем оформления, см. spec.md «Доработка v1.3») все цветовые токены,
+        которые зависят от темы — поверхность карточки/попапов, обводка, home-highlight, текст,
+        разделитель, тень — БОЛЬШЕ НЕ статические ресурсы здесь: они переехали в bindable-кисти
+        ThemeViewModel (см. ViewModels/ThemeViewModel.cs), доступные из XAML как
+        "{Binding Theme.XXX}" (MainViewModel.Theme, проброшенный тем же именем в дочерние
+        view-model строк/результатов поиска). Здесь остаются только токены, НЕ зависящие от темы
+        (см. design_brief.md и ThemeCatalogService — dayDot/nightDot одинаковые во всех темах,
+        accent не входит в список токенов тем).
     -->
 
-    <!-- Поверхности -->
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#E0F3F3F3"/>
-    <!-- ~88% альфа: базовая заливка карточки -->
-    <SolidColorBrush x:Key="SurfaceStrongBrush" Color="#F0F3F3F3"/>
-    <!-- ~94% альфа: попапы (добавление города, меню) -->
+    <!-- Подсветка строки при наведении/нажатии (не тема-зависимая) -->
     <SolidColorBrush x:Key="SurfaceRowHoverBrush" Color="#14000000"/>
-    <!-- лёгкая тёмная подсветка строки при наведении -->
-    <SolidColorBrush x:Key="TopHighlightBrush" Color="#99FFFFFF"/>
-    <!-- обводка-хайлайт сверху карточки, 60% белого -->
-    <SolidColorBrush x:Key="DividerBrush" Color="#0F000000"/>
-    <!-- разделитель между строками, 6% чёрного -->
 
-    <!-- Акцент -->
+    <!-- Акцент — единый во всех темах (не входит в список токенов темы) -->
     <SolidColorBrush x:Key="AccentBrush" Color="#0078D4"/>
-    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1F0078D4"/>
-    <!-- подложка домашней строки: accent на ~12% альфы -->
     <SolidColorBrush x:Key="AccentHoverBrush" Color="#F0006CBE"/>
 
-    <!-- Текст -->
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1B1B1B"/>
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6B6B"/>
+    <!-- Текст на акцентной подложке (тумблеры, thumb слайдера) -->
     <SolidColorBrush x:Key="TextOnAccentBrush" Color="#FFFFFF"/>
 
     <!-- Индикатор день/ночь -->

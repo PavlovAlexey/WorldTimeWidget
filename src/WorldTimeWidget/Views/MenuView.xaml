@@ -5,13 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              Width="230" d:DesignHeight="300">
-    <Border Background="{StaticResource SurfaceStrongBrush}"
-            CornerRadius="8"
-            BorderThickness="1,1,1,0"
-            BorderBrush="{StaticResource TopHighlightBrush}"
+    <Border Background="{Binding Theme.PopupBrush}"
+            CornerRadius="{Binding Theme.CardRadius}"
+            BorderThickness="{Binding Theme.CardBorderThickness}"
+            BorderBrush="{Binding Theme.BorderBrush}"
             Padding="6">
         <Border.Effect>
-            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+            <DropShadowEffect Color="{Binding Theme.ShadowColor}" Direction="270"
+                               ShadowDepth="{Binding Theme.ShadowOffsetY}"
+                               BlurRadius="{Binding Theme.ShadowBlurRadius}"
+                               Opacity="{Binding Theme.ShadowOpacity}"/>
         </Border.Effect>
 
         <StackPanel>
@@ -35,30 +38,81 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Формат времени" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
-                    <TextBlock Grid.Column="1" Text="{Binding FormatLabel}" Foreground="{StaticResource TextSecondaryBrush}"
+                    <TextBlock Grid.Column="1" Text="{Binding FormatLabel}" Foreground="{Binding Theme.TextSecondaryBrush}"
                                FontFamily="{StaticResource AppFontFamily}" FontSize="13" Margin="8,0,4,0"/>
-                    <TextBlock Grid.Column="2" Text="&#x203A;" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+                    <TextBlock Grid.Column="2" Text="&#x203A;" Foreground="{Binding Theme.TextSecondaryBrush}" FontSize="13"/>
                 </Grid>
             </Button>
 
-            <!-- Прозрачность фона карточки (доработка v1.1) -->
-            <StackPanel Margin="12,8">
+            <!-- Тема оформления (доработка v1.3): сетка из 6 сваши, порядок — как в токенах spec.md
+                 (Windows, Liquid Glass, macOS, AMOLED Dark, Minimal Flat, Rainmeter Enigma). Клик
+                 мгновенно переключает тему на всех 5 экранах виджета. -->
+            <StackPanel Margin="12,8,12,4">
+                <TextBlock Text="Тема" Foreground="{Binding Theme.TextPrimaryBrush}" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                <ItemsControl ItemsSource="{Binding Theme.Swatches}" Margin="0,8,0,0" HorizontalAlignment="Left">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" Rows="2"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.SelectThemeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding Id}"
+                                    ToolTip="{Binding DisplayName}"
+                                    Width="40" Height="40" Margin="4"
+                                    Cursor="Hand" Focusable="False"
+                                    Background="Transparent" BorderThickness="0" Padding="0">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid Width="40" Height="40">
+                                            <!-- Кольцо-индикатор активной темы (2px, акцент) -->
+                                            <Ellipse Width="36" Height="36" Fill="Transparent"
+                                                     Stroke="{StaticResource AccentBrush}" StrokeThickness="2">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Opacity" Value="0"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                <Setter Property="Opacity" Value="1"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                            <!-- Сам сваш: заливка surface-цветом темы, тонкая обводка её border-цвета -->
+                                            <Ellipse Width="32" Height="32" Fill="{Binding FillBrush}"
+                                                     Stroke="{Binding BorderBrush}" StrokeThickness="1"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Прозрачность фона карточки (доработка v1.1; per-theme хранение и диапазон 20-100% — v1.3).
+                 На теме Minimal Flat слайдер визуально задизейблен (серый) и зафиксирован на 100%,
+                 т.к. прозрачность там принципиально недоступна (см. ThemeDefinition.AllowsOpacityAdjustment). -->
+            <StackPanel Margin="12,8" Opacity="{Binding Theme.AllowsOpacityAdjustment, Converter={StaticResource BoolToEnabledOpacityConverter}}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Прозрачность" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
+                    <TextBlock Grid.Column="0" Text="Прозрачность" Foreground="{Binding Theme.TextPrimaryBrush}" FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
                     <TextBlock Grid.Column="1" Text="{Binding BackgroundOpacityPercent, StringFormat={}{0}%}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{Binding Theme.TextSecondaryBrush}"
                                FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
                 </Grid>
                 <Slider Style="{StaticResource OpacitySliderStyle}" Margin="0,8,0,0"
+                        IsEnabled="{Binding Theme.AllowsOpacityAdjustment}"
                         Value="{Binding BackgroundOpacityPercent, Mode=TwoWay}"/>
             </StackPanel>
 
             <!-- Разделитель -->
-            <Border Height="1" Background="{StaticResource DividerBrush}" Margin="8,6"/>
+            <Border Height="1" Background="{Binding Theme.DividerBrush}" Margin="8,6"/>
 
             <!-- 5. Всегда поверх окон -->
             <Grid Margin="12,8">
@@ -67,6 +121,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Всегда поверх окон" VerticalAlignment="Center"
+                           Foreground="{Binding Theme.TextPrimaryBrush}"
                            FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
                 <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding IsAlwaysOnTop, Mode=TwoWay}"/>
@@ -82,6 +137,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Прозрачный для кликов" VerticalAlignment="Center"
                            TextWrapping="Wrap"
+                           Foreground="{Binding Theme.TextPrimaryBrush}"
                            FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
                 <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
                               IsChecked="{Binding IsClickThrough, Mode=TwoWay}"/>
@@ -95,13 +151,14 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Запуск при входе в Windows" VerticalAlignment="Center"
                            TextWrapping="Wrap"
+                           Foreground="{Binding Theme.TextPrimaryBrush}"
                            FontFamily="{StaticResource AppFontFamily}" FontSize="13"/>
                 <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
                               IsChecked="{Binding IsAutostartEnabled, Mode=TwoWay}"/>
             </Grid>
 
             <!-- Разделитель -->
-            <Border Height="1" Background="{StaticResource DividerBrush}" Margin="8,6"/>
+            <Border Height="1" Background="{Binding Theme.DividerBrush}" Margin="8,6"/>
 
             <!-- 8. Выход -->
             <Button Style="{StaticResource DangerMenuItemButtonStyle}" Command="{Binding ExitCommand}">

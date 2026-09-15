@@ -5,12 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              Width="288" d:DesignHeight="360">
-    <Border Background="{StaticResource SurfaceStrongBrush}"
-            CornerRadius="8"
-            BorderThickness="1,1,1,0"
-            BorderBrush="{StaticResource TopHighlightBrush}">
+    <Border Background="{Binding Theme.PopupBrush}"
+            CornerRadius="{Binding Theme.CardRadius}"
+            BorderThickness="{Binding Theme.CardBorderThickness}"
+            BorderBrush="{Binding Theme.BorderBrush}">
         <Border.Effect>
-            <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+            <DropShadowEffect Color="{Binding Theme.ShadowColor}" Direction="270"
+                               ShadowDepth="{Binding Theme.ShadowOffsetY}"
+                               BlurRadius="{Binding Theme.ShadowBlurRadius}"
+                               Opacity="{Binding Theme.ShadowOpacity}"/>
         </Border.Effect>
 
         <DockPanel Margin="10">
@@ -20,7 +23,7 @@
                 <TextBox x:Name="SearchBox" Style="{StaticResource SearchTextBoxStyle}"
                          Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock Text="Поиск города или часового пояса..."
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{Binding Theme.TextSecondaryBrush}"
                            FontFamily="{StaticResource AppFontFamily}" FontSize="13"
                            Margin="12,0,0,0" VerticalAlignment="Center"
                            IsHitTestVisible="False"
@@ -45,14 +48,14 @@
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="{Binding CityName}" FontFamily="{StaticResource AppFontFamily}"
-                                                   FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                   FontSize="13" FontWeight="Medium" Foreground="{Binding Theme.TextPrimaryBrush}"/>
                                         <TextBlock Text="{Binding CountryName}" FontFamily="{StaticResource AppFontFamily}"
-                                                   FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                   FontSize="11" Foreground="{Binding Theme.TextSecondaryBrush}"/>
                                     </StackPanel>
 
                                     <TextBlock Grid.Column="1" VerticalAlignment="Center"
                                                FontFamily="{StaticResource AppFontFamily}" FontSize="12"
-                                               Foreground="{StaticResource TextSecondaryBrush}">
+                                               Foreground="{Binding Theme.TextSecondaryBrush}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Text" Value="{Binding UtcOffsetText}"/>

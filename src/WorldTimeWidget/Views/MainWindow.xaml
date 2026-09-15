@@ -15,15 +15,18 @@
 
     <Grid>
         <Border x:Name="RootBorder"
-                CornerRadius="8"
-                Background="{Binding CardBackgroundBrush}"
-                BorderThickness="1,1,1,0"
-                BorderBrush="{StaticResource TopHighlightBrush}"
+                CornerRadius="{Binding Theme.CardRadius}"
+                Background="{Binding Theme.CardBrush}"
+                BorderThickness="{Binding Theme.CardBorderThickness}"
+                BorderBrush="{Binding Theme.BorderBrush}"
                 MouseLeftButtonDown="RootBorder_MouseLeftButtonDown"
                 MouseEnter="RootBorder_MouseEnter"
                 MouseLeave="RootBorder_MouseLeave">
             <Border.Effect>
-                <DropShadowEffect Color="Black" Direction="270" ShadowDepth="9" BlurRadius="26" Opacity="0.18"/>
+                <DropShadowEffect Color="{Binding Theme.ShadowColor}" Direction="270"
+                                   ShadowDepth="{Binding Theme.ShadowOffsetY}"
+                                   BlurRadius="{Binding Theme.ShadowBlurRadius}"
+                                   Opacity="{Binding Theme.ShadowOpacity}"/>
             </Border.Effect>
 
             <Grid>
@@ -37,13 +40,14 @@
                     <ItemsControl ItemsSource="{Binding Rows}" Margin="0,32,0,0">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Padding="12,10" AllowDrop="True" Drop="RowBorder_Drop">
+                                <Border Padding="12,10" AllowDrop="True" Drop="RowBorder_Drop"
+                                        CornerRadius="{Binding Theme.HomeHighlightRadius}">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="Transparent"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsHome}" Value="True">
-                                                    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                                    <Setter Property="Background" Value="{Binding Theme.HomeHighlightBrush}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -74,7 +78,7 @@
                                                 </Ellipse.Style>
                                             </Ellipse>
                                             <TextBlock x:Name="DragHandle" Text="&#x283F;" FontSize="13"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Foreground="{Binding Theme.TextSecondaryBrush}"
                                                        Cursor="SizeAll" Opacity="0" IsHitTestVisible="False"
                                                        MouseLeftButtonDown="DragHandle_MouseLeftButtonDown"/>
                                         </Grid>
@@ -83,13 +87,13 @@
                                         <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding CityName}"
                                                        FontFamily="{StaticResource AppFontFamily}"
-                                                       FontSize="14" FontWeight="Medium"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       FontSize="14" FontWeight="{Binding Theme.CityNameFontWeight}"
+                                                       Foreground="{Binding Theme.TextPrimaryBrush}"
                                                        TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Text="{Binding DateText}"
                                                        FontFamily="{StaticResource AppFontFamily}"
                                                        FontSize="11"
-                                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                       Foreground="{Binding Theme.TextSecondaryBrush}"/>
                                         </StackPanel>
 
                                         <!-- Время+UTC ИЛИ кнопка удаления — общая ячейка Grid (не StackPanel),
@@ -101,11 +105,11 @@
                                                            FontFamily="{StaticResource AppFontFamily}"
                                                            FontSize="21" FontWeight="SemiBold"
                                                            HorizontalAlignment="Right"
-                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                           Foreground="{Binding Theme.TextPrimaryBrush}"/>
                                                 <TextBlock Text="{Binding UtcOffsetText}"
                                                            FontFamily="{StaticResource AppFontFamily}"
                                                            FontSize="11" HorizontalAlignment="Right"
-                                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                           Foreground="{Binding Theme.TextSecondaryBrush}"/>
                                             </StackPanel>
                                             <Button x:Name="DeleteButton" Style="{StaticResource DeleteButtonStyle}"
                                                     Content="&#xD7;" Opacity="0" IsHitTestVisible="False"
@@ -159,6 +163,16 @@
                         <TextBlock Text="+ Добавить город" FontFamily="{StaticResource AppFontFamily}"/>
                     </Button>
                 </StackPanel>
+
+                <!-- Глянцевый блик Liquid Glass (доработка v1.3, см. spec.md) — полупрозрачный
+                     прямоугольник во всю ширину карточки, прижат к верхнему краю, поверх контента.
+                     Виден только когда активна тема Liquid Glass (Opacity 0/1 вместо Visibility,
+                     см. устоявшийся в проекте паттерн), фиксированная заливка #FFFFFF@18% —
+                     не зависит от прозрачности карточки/других тем. -->
+                <Border VerticalAlignment="Top" Height="90" IsHitTestVisible="False"
+                        Background="#2EFFFFFF"
+                        CornerRadius="{Binding Theme.GlossTopCornerRadius}"
+                        Opacity="{Binding Theme.GlossOpacity}"/>
 
                 <!-- Hover-кнопки "+" и "⋯" (борд 02). Показ/скрытие управляется из code-behind
                      по MouseEnter/MouseLeave карточки через Opacity/IsHitTestVisible

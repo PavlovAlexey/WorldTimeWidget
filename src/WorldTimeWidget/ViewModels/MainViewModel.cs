@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Threading;
 using WorldTimeWidget.Models;
 using WorldTimeWidget.Services;
@@ -13,10 +12,7 @@ namespace WorldTimeWidget.ViewModels;
 /// </summary>
 public sealed class MainViewModel : ViewModelBase
 {
-    /// <summary>Базовый цвет фона карточки (без альфы) — тот же, что зашит в <c>SurfaceBrush</c>.</summary>
-    private static readonly Color SurfaceBaseColor = Color.FromRgb(0xF3, 0xF3, 0xF3);
-
-    public const int MinBackgroundOpacityPercent = 40;
+    public const int MinBackgroundOpacityPercent = 20;
     public const int MaxBackgroundOpacityPercent = 100;
 
     private readonly SettingsService _settingsService;
@@ -46,14 +42,16 @@ public sealed class MainViewModel : ViewModelBase
         // но при расхождении с сохранённым намерением приводим реестр в соответствие настройкам.
         _isAutostartEnabled = _settings.IsAutostartEnabled;
         _isClickThrough = _settings.IsClickThrough;
-        _backgroundOpacityPercent = Math.Clamp(
-            _settings.BackgroundOpacityPercent, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
-        CardBackgroundBrush = new SolidColorBrush(ComputeSurfaceColor(_backgroundOpacityPercent));
+
+        Theme = new ThemeViewModel();
+        var themeDefinition = ThemeCatalogService.GetById(_settings.ThemeId);
+        _backgroundOpacityPercent = ResolveOpacityForTheme(themeDefinition);
+        Theme.Apply(themeDefinition, _backgroundOpacityPercent);
 
         Rows = new ObservableCollection<TimeZoneRowViewModel>();
         SearchResults = new ObservableCollection<AddCityItemViewModel>();
 
-        var homeRow = new TimeZoneRowViewModel(TimeZoneInfo.Local.Id, GetHomeCityName(), isHome: true);
+        var homeRow = new TimeZoneRowViewModel(TimeZoneInfo.Local.Id, GetHomeCityName(), isHome: true, Theme);
         Rows.Add(homeRow);
 
         foreach (var tzId in _settings.TimeZoneIds)
@@ -72,7 +70,7 @@ public sealed class MainViewModel : ViewModelBase
                 continue;
             }
 
-            Rows.Add(new TimeZoneRowViewModel(tzId, cityName, isHome: false));
+            Rows.Add(new TimeZoneRowViewModel(tzId, cityName, isHome: false, Theme));
         }
 
         ToggleEditModeCommand = new RelayCommand(ToggleEditMode);
@@ -90,6 +88,7 @@ public sealed class MainViewModel : ViewModelBase
             Is24HourFormat = !Is24HourFormat;
             IsMenuOpen = false;
         });
+        SelectThemeCommand = new RelayCommand(param => SetTheme((string)param!));
         ExitCommand = new RelayCommand(() => Application.Current.Shutdown());
 
         RefreshSearchResults();
@@ -114,6 +113,9 @@ public sealed class MainViewModel : ViewModelBase
     public ObservableCollection<TimeZoneRowViewModel> Rows { get; }
 
     public ObservableCollection<AddCityItemViewModel> SearchResults { get; }
+
+    /// <summary>Текущая активная тема оформления (см. spec.md, «Доработка v1.3»). Один и тот же экземпляр проброшен в дочерние view-model строк/результатов поиска.</summary>
+    public ThemeViewModel Theme { get; }
 
     public bool IsEditMode
     {
@@ -235,25 +237,28 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Фон карточки (<c>RootBorder.Background</c>), альфа-канал которого регулируется слайдером
-    /// «Прозрачность». Кисть создаётся один раз и мутируется на месте (<see cref="SolidColorBrush.Color"/>)
-    /// при изменении настройки — WPF перерисовывает всё, что на неё ссылается, без пересоздания
-    /// binding'а. Попапы (добавление города, меню) используют отдельный фиксированный
-    /// <c>SurfaceStrongBrush</c> и этой кистью не затрагиваются.
+    /// Прозрачность фона карточки для ТЕКУЩЕЙ активной темы, % (<see cref="MinBackgroundOpacityPercent"/>-
+    /// <see cref="MaxBackgroundOpacityPercent"/>) — хранится отдельно на каждую тему, см.
+    /// <c>AppSettings.BackgroundOpacityByTheme</c>. Задизейблено (см. <see cref="ThemeViewModel.AllowsOpacityAdjustment"/>)
+    /// и зафиксировано на 100% для Minimal Flat.
     /// </summary>
-    public SolidColorBrush CardBackgroundBrush { get; }
-
-    /// <summary>Прозрачность фона карточки, % (40-100). См. <see cref="CardBackgroundBrush"/>.</summary>
     public int BackgroundOpacityPercent
     {
         get => _backgroundOpacityPercent;
         set
         {
+            if (!Theme.AllowsOpacityAdjustment)
+            {
+                // Minimal Flat: слайдер задизейблен в UI, но на всякий случай не даём значению
+                // отклониться от 100% и при программном вызове сеттера.
+                return;
+            }
+
             var clamped = Math.Clamp(value, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
             if (SetField(ref _backgroundOpacityPercent, clamped))
             {
-                CardBackgroundBrush.Color = ComputeSurfaceColor(clamped);
-                _settings.BackgroundOpacityPercent = clamped;
+                Theme.SetCardOpacityPercent(clamped);
+                _settings.BackgroundOpacityByTheme[Theme.Definition.Id] = clamped;
                 Save();
             }
         }
@@ -266,6 +271,7 @@ public sealed class MainViewModel : ViewModelBase
     public RelayCommand AddCityCommand { get; }
     public RelayCommand RemoveCityCommand { get; }
     public RelayCommand ToggleFormatCommand { get; }
+    public RelayCommand SelectThemeCommand { get; }
     public RelayCommand ExitCommand { get; }
 
     /// <summary>Вызывается из code-behind при drag-перестановке строк в режиме редактирования.</summary>
@@ -325,7 +331,7 @@ public sealed class MainViewModel : ViewModelBase
             return;
         }
 
-        Rows.Add(new TimeZoneRowViewModel(item.City.TimeZoneId, item.City.City, isHome: false));
+        Rows.Add(new TimeZoneRowViewModel(item.City.TimeZoneId, item.City.City, isHome: false, Theme));
         PersistCityOrder();
         RefreshAllRows();
         RefreshSearchResults();
@@ -378,8 +384,48 @@ public sealed class MainViewModel : ViewModelBase
             }
 
             var alreadyAdded = addedIds.Contains(city.TimeZoneId);
-            SearchResults.Add(new AddCityItemViewModel(city, offsetText, alreadyAdded));
+            SearchResults.Add(new AddCityItemViewModel(city, offsetText, alreadyAdded, Theme));
         }
+    }
+
+    /// <summary>Переключает активную тему (пикер в меню «⋯», см. spec.md «UI переключения темы») — мгновенно, без перезапуска.</summary>
+    private void SetTheme(string themeId)
+    {
+        var definition = ThemeCatalogService.GetById(themeId);
+        if (ReferenceEquals(definition, Theme.Definition))
+        {
+            return;
+        }
+
+        var opacity = ResolveOpacityForTheme(definition);
+        Theme.Apply(definition, opacity);
+
+        _backgroundOpacityPercent = opacity;
+        OnPropertyChanged(nameof(BackgroundOpacityPercent));
+
+        _settings.ThemeId = definition.Id;
+        if (definition.AllowsOpacityAdjustment)
+        {
+            _settings.BackgroundOpacityByTheme[definition.Id] = opacity;
+        }
+
+        Save();
+    }
+
+    /// <summary>Сохранённое для темы значение прозрачности карточки, либо её дизайн-дефолт, если пользователь ещё не менял слайдер для этой темы.</summary>
+    private int ResolveOpacityForTheme(ThemeDefinition definition)
+    {
+        if (!definition.AllowsOpacityAdjustment)
+        {
+            return definition.DefaultOpacityPercent;
+        }
+
+        if (_settings.BackgroundOpacityByTheme.TryGetValue(definition.Id, out var saved))
+        {
+            return Math.Clamp(saved, MinBackgroundOpacityPercent, MaxBackgroundOpacityPercent);
+        }
+
+        return definition.DefaultOpacityPercent;
     }
 
     private void RefreshAllRows()
@@ -416,13 +462,6 @@ public sealed class MainViewModel : ViewModelBase
     private void Save()
     {
         _settingsService.Save(_settings);
-    }
-
-    /// <summary>Пересчитывает процент прозрачности (0-100) в цвет фона карточки с альфа-каналом.</summary>
-    private static Color ComputeSurfaceColor(int percent)
-    {
-        var alpha = (byte)Math.Clamp((int)Math.Round(percent / 100.0 * 255.0), 0, 255);
-        return Color.FromArgb(alpha, SurfaceBaseColor.R, SurfaceBaseColor.G, SurfaceBaseColor.B);
     }
 
     private static string GetHomeCityName()
